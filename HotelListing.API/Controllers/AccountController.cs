@@ -1,15 +1,18 @@
-﻿using HotelListing.API.Contracts;
-using HotelListing.API.Models.Users;
+﻿using HotelListing.API.Core.Contracts;
+using HotelListing.API.Core.Exceptions;
+using HotelListing.API.Core.Models.Users;
 using Microsoft.AspNetCore.Mvc;
+using System.Runtime.InteropServices;
 
 namespace HotelListing.API.Controllers
 {
-    // [Route("api/[controller]")]
-    // [ApiController]
+    [Route("api/[controller]")]
+    [ApiController]
     public class AccountController : Controller
     {
         private readonly IAuthManager _authManager;
-        public AccountController(IAuthManager authManager)
+        private readonly ILogger<AccountController> _logger;
+        public AccountController(IAuthManager authManager, ILogger<AccountController> logger)
         {
             _authManager = authManager;
         }
@@ -29,7 +32,8 @@ namespace HotelListing.API.Controllers
                 {
                     ModelState.AddModelError(error.Code, error.Description);
                 }
-                return BadRequest(ModelState);
+                throw new BadRequestException(nameof(Register), apiUserDto.Email);
+                //return BadRequest(ModelState);
             }
             return Ok();
         }
@@ -59,7 +63,6 @@ namespace HotelListing.API.Controllers
         public async Task<ActionResult> RefreshToken([FromBody] AuthResponseDto request)
         {
             var authResponse = await _authManager.VerifyRefreshToken(request);
-
             if (authResponse == null)
             {
                 return Unauthorized();
